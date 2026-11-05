@@ -88,7 +88,7 @@ def releaseVersion = System.env.RELEASE_VERSION
 def antlrVersion = '4.13.2' // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
 def guavaVersion = '33.7.2-jre' // Fix CVE-2026-102554 (GHSA-xxph-c9ww-hj94)
 version = releaseVersion ? releaseVersion : getDevelopmentVersion()
-group = 'com.graphql-java'
+group = System.env.JITPACK == 'true' ? System.env.GROUP : 'com.graphql-java'
 
 gradle.buildFinished { buildResult ->
     println "*******************************"
@@ -424,6 +424,9 @@ publishing {
 
         graphqlJava(MavenPublication) {
             version version
+            if (System.env.JITPACK == 'true') {
+                artifactId = System.env.ARTIFACT
+            }
             from components.java
 
             artifact sourcesJar {
@@ -498,6 +501,11 @@ signing {
 // all publish tasks depend on the build task
 tasks.withType(PublishToMavenRepository) {
     dependsOn build
+}
+
+// JitPack collects artifacts installed in Maven local. Publish the completed shaded JAR.
+tasks.withType(PublishToMavenLocal).configureEach {
+    dependsOn shadowJar, buildNewJar
 }
 
 // Only publish Maven POM, disable default Gradle modules file

@@ -1,0 +1,4 @@
+jdk:
+  - openjdk21
+install:
+  - RELEASE_VERSION="$VERSION" ./gradlew --no-daemon clean publishToMavenLocal -PpublishToMavenLocal
